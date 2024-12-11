@@ -1,4 +1,11 @@
 {
+  "builds": [
+    {
+      "src": "dist/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/dist/(.*)",
@@ -10,4 +17,5 @@
       ]
     }
   ]
+  
 }
