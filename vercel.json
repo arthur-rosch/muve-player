@@ -1,9 +1,8 @@
 {
   "builds": [
     {
-      "src": "dist/**/*",
+      "src": "dist/player.umd.js",
       "use": "@vercel/static"
     }
-  ],
-  "cleanUrls": true
+  ]
 }
