@@ -1,9 +1,13 @@
 {
-  "builds": [
+  "headers": [
     {
-      "src": "dist/**/*",
-      "use": "@vercel/static"
+      "source": "/dist/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
     }
-  ],
-  "cleanUrls": true
+  ]
 }
