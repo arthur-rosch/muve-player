@@ -5,11 +5,11 @@ export default defineConfig({
     lib: {
       entry: 'src/player.tsx',
       name: 'VideoPlayer',
-      fileName: 'player', // Aqui você pode escolher o nome do arquivo
-      formats: ['umd'],   // Gerar formato UMD, que é mais compatível com navegadores
+      fileName: 'player',  // Usando o nome do arquivo como 'player.js'
+      formats: ['umd'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom'], // Excluindo dependências do pacote
+      external: ['react', 'react-dom'],
       output: {
         globals: {
           react: 'React',
