@@ -5,7 +5,7 @@ export default defineConfig({
     lib: {
     entry: 'src/player.tsx',
     name: 'VideoPlayer',
-    fileName: 'player.umd',  // Geração do arquivo player.umd.js
+    fileName: 'player',  // Geração do arquivo player.umd.js
     formats: ['umd'],
   },
     rollupOptions: {
