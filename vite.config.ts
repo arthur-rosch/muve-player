@@ -6,7 +6,6 @@ export default defineConfig({
       entry: 'src/player.tsx',
       name: 'VideoPlayer',
       fileName: 'player',  // Usando o nome do arquivo como 'player.js'
-      formats: ['umd'],
     },
     rollupOptions: {
       external: ['react', 'react-dom'],
