@@ -1,4 +1,4 @@
-import { P as e } from "./player-D6rg1Llk.js";
+import { P as e } from "./player-BnoAkFuT.js";
 import "react";
 export {
   e as Player
