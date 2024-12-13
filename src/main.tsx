@@ -8,21 +8,23 @@ import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 const initReactApp = () => {
-  const root = document.getElementById('player');
-  if (root) {
-    ReactDOM.createRoot(root).render(
-      <React.StrictMode>
-        <BrowserRouter>
-          <ApolloProvider client={client}>
-            <Routes>
-              <Route path="/" element={<Player />} />
-            </Routes>
-          </ApolloProvider>
-        </BrowserRouter>
-      </React.StrictMode>
-    );
+  const rootElement = document.getElementById('player'); // Obtém o elemento root
+  if (!rootElement) {
+    console.error('Elemento "player" não encontrado no DOM!');
+    return;
   }
+
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <ApolloProvider client={client}>
+          <Routes>
+            <Route path="/" element={<Player />} />
+          </Routes>
+        </ApolloProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
 };
 
-//@ts-ignore
-window.initReactApp = initReactApp;
