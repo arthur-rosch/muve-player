@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import process from 'process';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,5 +14,8 @@ export default defineConfig({
     },
     outDir: 'dist',  // Diretório de saída
     sourcemap: true,  // Gera source maps para depuração
+  },
+  define: {
+    process: JSON.stringify(process), // Substitui o processo com um objeto vazio no navegador
   },
 });
