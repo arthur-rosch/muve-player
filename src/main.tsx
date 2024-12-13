@@ -7,7 +7,7 @@ import { Player } from './player';
 import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-const root = document.getElementById('root')!
+const root = document.getElementById('player')!
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
       <BrowserRouter>
