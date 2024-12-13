@@ -38,11 +38,7 @@ export function Volume() {
   );
 }
 
-export interface TimeSliderProps {
-  thumbnails?: string;
-}
-
-export function Time({ thumbnails }: TimeSliderProps) {
+export function Time() {
   const time = useMediaState('currentTime'),
     canSeek = useMediaState('canSeek'),
     duration = useMediaState('duration'),

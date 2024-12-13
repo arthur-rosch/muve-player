@@ -4,6 +4,7 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { BookmarkIcon, CheckCircle, CircleIcon } from 'lucide-react';
 import { useMediaPlayer } from '@vidstack/react';
 import { buttonClass, tooltipClass } from './buttons';
+import type { Chapter } from '../types';
 // @ts-ignore
 interface ChapterItemProps extends DropdownMenu.MenuRadioItemProps {
   startTime: string;
@@ -58,17 +59,10 @@ const menuClass =
   'z-[9999] min-w-[300px] max-w-[350px] rounded-lg border border-white/10 bg-black/95 backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-2'
 ;
 
-export interface Chapter {
-  title: string;
-  startTime: string;
-  endTime: string;
-}
 
-const mockChapters: Chapter[] = [
-  { title: "Introduction", startTime: "00:00", endTime: "02:30" },
-  { title: "Chapter 1: Basics", startTime: "02:31", endTime: "10:00" },
-  { title: "Chapter 2: Advanced", startTime: "10:01", endTime: "20:00" },
-];
+interface MenuChaptersProps extends MenuProps {
+  chapters: Chapter[];
+}
 
 export function Chapters({
   side = 'top',
@@ -77,9 +71,10 @@ export function Chapters({
   tooltipSide = 'top',
   tooltipAlign = 'center',
   tooltipOffset = 0,
-}: MenuProps) {
+  chapters,
+}: MenuChaptersProps) {
   const player = useMediaPlayer();
-  const currentChapter = mockChapters[0]?.title ?? 'None';
+  const currentChapter = chapters[0]?.title ?? 'None';
 
   return (
     <DropdownMenu.Root>
@@ -123,10 +118,10 @@ export function Chapters({
               className="flex flex-col space-y-1"
               value={currentChapter}
             >
-              {mockChapters.map((chapter) => (
+              {chapters.map((chapter) => (
                 // @ts-ignore
                 <ChapterItem
-                  key={chapter.title}
+                  key={chapter.id}
                   value={chapter.title}
                   startTime={chapter.startTime}
                   endTime={chapter.endTime}

@@ -6,6 +6,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 
     <link rel="stylesheet" href="./src/base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     <script src="./src/main.tsx" type="module"></script>
   </head>
@@ -13,7 +14,13 @@
     <main class="mx-auto w-full max-w-5xl">
       <div id="player"></div>
 
-
+      <div id="muve-player-container" style="width:100%;max-width:60rem;margin:auto">
+        <div style="position:relative;width:100%;overflow:hidden;padding-top:56.25%;transition:0.25s;">
+           <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+            <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+            <script type="module" src="https://muve-player.vercel.app/?videoId=9a23e456-2c02-4a82-879a-b36068322531"></script>
+        </div>
+      </div>
     </main>
   </body>
 </html>

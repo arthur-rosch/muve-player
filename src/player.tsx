@@ -1,89 +1,174 @@
 import '@vidstack/react/player/styles/base.css';
-
-import { useEffect, useRef } from 'react';
-
+import { useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@apollo/client';
+import { useAnalytics, useContextMenu, UsePlayer } from './hooks';
 import {
-  isHLSProvider,
+  Poster,
   MediaPlayer,
   MediaProvider,
-  Poster,
-  Track,
-  useMediaStore,
-  type MediaCanPlayDetail,
   type MediaCanPlayEvent,
-  type MediaPIPChangeEvent,
-  type MediaPIPErrorEvent,
+  type MediaCanPlayDetail,
   type MediaPlayerInstance,
   type MediaProviderAdapter,
   type MediaProviderChangeEvent,
+  isYouTubeProvider,
+  useMediaStore,
 } from '@vidstack/react';
+import type { Video } from './types';
+import { GET_VIDEO } from './querys';
+import {
+  ContinueWatching,
+  ContextMenu,
+  VideoLayout,
+  VideoButtonCtaBelow,
+  WatchingNow,
+  VideoButtonCtaInside,
+  SmartAutoplayOverlay,
+  EndOverlay,
+  PauseOverlay,
+  ProgressBar,
+  VideoFormModal,
+} from './components/';
 
-import { VideoLayout } from './components/layouts/video-layout';
-import { textTracks } from './tracks';
 
 export function Player() {
-  let player = useRef<MediaPlayerInstance>(null);
-  const { canPictureInPicture, pictureInPicture } = useMediaStore(player);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const videoId = searchParams.get('videoId');
 
-  console.log(canPictureInPicture, pictureInPicture);
+  const player = useRef<MediaPlayerInstance | null>(null);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  
+  
+  const { currentTime, playing, paused, ended } = useMediaStore(player);
+  const { closeContextMenu, menuPosition, menuVisible, onContextMenu } = useContextMenu();
+  const { loading, error, data } = useQuery(GET_VIDEO, { variables: { id: videoId } });
 
-  useEffect(() => {
-    // Subscribe to state updates.
-    return player.current!.subscribe(({ paused, viewType }) => {
-      // console.log('is paused?', '->', state.paused);
-      // console.log('is audio view?', '->', state.viewType === 'audio');
-    });
-  }, []);
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-  function onProviderChange(
+  if (!data.video) {
+    return null
+  }
+
+  const video: Video = data.video;
+
+ const { sendViewRequest, sendViewTimestampRequest } = useAnalytics({
+    videoId: videoId!,
+  });
+
+  const {
+    handleRestart,
+    handleResume,
+    onPause,
+    showResumeMenu,
+    overlayVisible,
+    handlePlay,
+    progress,
+    transitionDuration,
+    smartAutoPlay,
+  } = UsePlayer({
+    ref: player,
+    videoSmartAutoPlay: video.smartAutoPlay!,
+    videoId: videoId!,
+  });
+
+  const onProviderChange = (
     provider: MediaProviderAdapter | null,
     nativeEvent: MediaProviderChangeEvent,
-  ) {
-    // We can configure provider's here.
-    if (isHLSProvider(provider)) {
-      provider.config = {};
+  ) => {
+    if (isYouTubeProvider(provider)) {
+      provider.preconnect();
+      provider.cookies;
     }
-  }
+  };
 
-  // We can listen for the `can-play` event to be notified when the player is ready.
-  function onCanPlay(detail: MediaCanPlayDetail, nativeEvent: MediaCanPlayEvent) {
-    // ...
-  }
+  const onCanPlay = (detail: MediaCanPlayDetail, nativeEvent: MediaCanPlayEvent) => {
+    console.log(nativeEvent.request, detail);
+  };
 
-  function onPIPChange(isActive: boolean, nativeEvent: MediaPIPChangeEvent) {
-    const requestEvent = nativeEvent.request;
-    console.log(requestEvent)
-  }
+  useEffect(() => {
+    if (playing) {
+      setStartTime(currentTime || 0);  
+      sendViewRequest();
+      console.log(playing, paused, ended)
+    }
+  
+    if ((paused || ended) && startTime !== null) {
+      sendViewTimestampRequest(startTime, currentTime);
+      
+      setStartTime(null);
+    }
+  }, [playing, paused, ended]);
 
-  function onPIPError(error: unknown, nativeEvent: MediaPIPErrorEvent) {
-    const requestEvent = nativeEvent.request;
-    console.log(requestEvent)
-  }
+  const [videoFormOpen, setVideoFormOpen] = useState<boolean>((video.VideoForm && !overlayVisible && video.VideoForm.isActive) || false);
 
   return (
-    <MediaPlayer
-      className="w-full aspect-video bg-slate-900 text-white font-sans overflow-hidden rounded-md ring-media-focus data-[focus]:ring-4"
-      title="Sprite Fight"
-      src="https://www.youtube.com/watch?v=BU8-GA0a06g"
-      crossOrigin
-      playsInline
-      onProviderChange={onProviderChange}
-      onCanPlay={onCanPlay}
-      ref={player}
-      onPictureInPictureChange={onPIPChange} onPictureInPictureError={onPIPError}
-    >
-      <MediaProvider>
-        <Poster
-          className="absolute inset-0 block h-full w-full rounded-md opacity-0 transition-opacity data-[visible]:opacity-100 object-cover"
-          src="https://files.vidstack.io/sprite-fight/poster.webp"
-          alt="Girl walks into campfire with gnomes surrounding her friend ready for their next meal!"
-        />
-        {textTracks.map((track) => (
-          <Track {...track} key={track.src} />
-        ))}
-      </MediaProvider>
+    <div onContextMenu={onContextMenu} className="relative">
+      <MediaPlayer
+        src={video?.url}
+        playsInline
+        ref={player}
+        load="visible"
+        controls={false}
+        onPause={onPause}
+        onCanPlay={onCanPlay}
+        crossOrigin="anonymous"
+        aspectRatio={video?.format}
+        onProviderChange={onProviderChange}
+        className="w-full aspect-video bg-slate-900 text-white font-sans overflow-hidden rounded-md ring-media-focus data-[focus]:ring-4"
+      >
+        <MediaProvider>
+          <Poster className="absolute inset-0 block h-full w-full rounded-md opacity-0 transition-opacity data-[visible]:opacity-100 object-cover" />
+        </MediaProvider>
 
-      <VideoLayout thumbnails="https://files.vidstack.io/sprite-fight/thumbnails.vtt" />
-    </MediaPlayer>
+        {paused && !overlayVisible && <PauseOverlay onPlay={handlePlay} video={video} />}
+        {ended && !overlayVisible && <EndOverlay onPlay={handlePlay} video={video} />}
+        {smartAutoPlay && overlayVisible && <SmartAutoplayOverlay video={video} onPlay={handlePlay} />}
+        {video.continueWatching && showResumeMenu && (
+          <ContinueWatching onRestart={handleRestart} onResume={handleResume} />
+        )}
+
+        {video.VideoForm && video.VideoForm.isActive && !overlayVisible && videoFormOpen && (
+          <VideoFormModal videoForm={video.VideoForm!} key={video.id} onClose={() => setVideoFormOpen(false)} onPlay={handlePlay}/>
+        )}
+
+        {video.fictitiousProgressHeight && !overlayVisible && (
+          <ProgressBar
+            progress={progress}
+            size={video.fictitiousProgressHeight}
+            transitionDuration={transitionDuration}
+            color={video.color || 'rgb(59 130 246)'}
+          />
+        )}
+
+        {!overlayVisible && <VideoLayout video={video} overlayVisible={overlayVisible} />}
+
+        {video.buttonsActive && (
+          <VideoButtonCtaInside
+            key={video.id}
+            Buttons={video.VideoButtons}
+            currentTime={currentTime}
+            overlayVisible={overlayVisible}
+          />
+        )}
+        
+      </MediaPlayer>
+
+      {video.watchingNow && <WatchingNow video={video} />}
+      {video.buttonsActive && (
+        <VideoButtonCtaBelow
+          key={video.id}
+          Buttons={video.VideoButtons}
+          currentTime={currentTime}
+          overlayVisible={overlayVisible}
+        />
+      )}
+      {menuVisible && menuPosition && (
+        <ContextMenu position={menuPosition} onClose={closeContextMenu} />
+      )}
+    </div>
   );
 }
