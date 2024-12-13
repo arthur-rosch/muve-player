@@ -9,7 +9,7 @@ export default defineConfig({
     lib: {
       entry: './src/main.tsx', // Seu arquivo de entrada principal do React
       name: 'player',      // Nome global do seu script
-      fileName: (format) => `player.${format}.js`, // Nome do arquivo de saída
+      fileName: (format) => `player.js`, // Nome do arquivo de saída
     },
     outDir: 'dist',  // Diretório de saída
     sourcemap: true,  // Gera source maps para depuração
