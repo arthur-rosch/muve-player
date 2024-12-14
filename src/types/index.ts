@@ -57,7 +57,7 @@ export interface Video {
   fictitiousProgressHeight?: string;
   VideoButtons: VideoButton[];
   Chapter: Chapter[];
-  VideoForm: VideoForm
+  VideoForm?: VideoForm
 }
 
 export interface VideoForm {

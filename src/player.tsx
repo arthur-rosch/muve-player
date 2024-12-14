@@ -1,140 +1,110 @@
-import '@vidstack/react/player/styles/base.css';
-import { useLocation } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
-import { useQuery } from '@apollo/client';
-import { useAnalytics, useContextMenu, UsePlayer } from './hooks';
+import type { Video } from './types';
+import {
+  EndOverlay,
+  ProgressBar,
+  ContextMenu,
+  VideoLayout,
+  WatchingNow,
+  PauseOverlay,
+  VideoFormModal,
+  ContinueWatching,
+  VideoButtonCtaBelow,
+  VideoButtonCtaInside,
+  SmartAutoplayOverlay,
+} from './components/';
 import {
   Poster,
   MediaPlayer,
-  MediaProvider,
-  type MediaCanPlayEvent,
-  type MediaCanPlayDetail,
-  type MediaPlayerInstance,
-  type MediaProviderAdapter,
-  type MediaProviderChangeEvent,
-  isYouTubeProvider,
   useMediaStore,
+  MediaProvider,
+  isYouTubeProvider,
+  type MediaPlayerInstance,
 } from '@vidstack/react';
-import type { Video } from './types';
-import { GET_VIDEO } from './querys';
-import {
-  ContinueWatching,
-  ContextMenu,
-  VideoLayout,
-  VideoButtonCtaBelow,
-  WatchingNow,
-  VideoButtonCtaInside,
-  SmartAutoplayOverlay,
-  EndOverlay,
-  PauseOverlay,
-  ProgressBar,
-  VideoFormModal,
-} from './components/';
+import { useRef, useState, useEffect } from 'react';
+import { useAnalytics, useContextMenu, UsePlayer } from './hooks';
 
+type PlayerProps = {
+  video: Video;
+};
 
-export function Player() {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const videoId = searchParams.get('videoId');
-
+export function Player({ video }: PlayerProps) {
   const player = useRef<MediaPlayerInstance | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
-  
-  
+
   const { currentTime, playing, paused, ended } = useMediaStore(player);
   const { closeContextMenu, menuPosition, menuVisible, onContextMenu } = useContextMenu();
-  const { loading, error, data } = useQuery(GET_VIDEO, { variables: { id: videoId } });
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!data.video) {
-    return null
-  }
-
-  const video: Video = data.video;
-
- const { sendViewRequest, sendViewTimestampRequest } = useAnalytics({
-    videoId: videoId!,
+  const { sendViewRequest, sendViewTimestampRequest } = useAnalytics({
+    videoId: video.id,
   });
 
   const {
-    handleRestart,
-    handleResume,
     onPause,
-    showResumeMenu,
-    overlayVisible,
-    handlePlay,
     progress,
-    transitionDuration,
+    handlePlay,
+    handleResume,
+    handleRestart,
     smartAutoPlay,
+    overlayVisible,
+    showResumeMenu,
+    transitionDuration,
   } = UsePlayer({
     ref: player,
-    videoSmartAutoPlay: video.smartAutoPlay!,
-    videoId: videoId!,
+    videoId: video.id,
+    videoSmartAutoPlay: video.smartAutoPlay || false,
   });
 
-  const onProviderChange = (
-    provider: MediaProviderAdapter | null,
-    nativeEvent: MediaProviderChangeEvent,
-  ) => {
-    if (isYouTubeProvider(provider)) {
-      provider.preconnect();
-      provider.cookies;
-    }
-  };
-
-  const onCanPlay = (detail: MediaCanPlayDetail, nativeEvent: MediaCanPlayEvent) => {
-    console.log(nativeEvent.request, detail);
-  };
+  const [videoFormOpen, setVideoFormOpen] = useState<boolean>(
+    (video.VideoForm && !overlayVisible && video.VideoForm.isActive) || false
+  );
 
   useEffect(() => {
     if (playing) {
-      setStartTime(currentTime || 0);  
+      setStartTime(currentTime || 0);
       sendViewRequest();
-      console.log(playing, paused, ended)
     }
-  
+
     if ((paused || ended) && startTime !== null) {
       sendViewTimestampRequest(startTime, currentTime);
-      
       setStartTime(null);
     }
   }, [playing, paused, ended]);
 
-  const [videoFormOpen, setVideoFormOpen] = useState<boolean>((video.VideoForm && !overlayVisible && video.VideoForm.isActive) || false);
-
   return (
     <div onContextMenu={onContextMenu} className="relative">
       <MediaPlayer
-        src={video?.url}
+        src={video.url}
         playsInline
         ref={player}
         load="visible"
         controls={false}
         onPause={onPause}
-        onCanPlay={onCanPlay}
         crossOrigin="anonymous"
-        aspectRatio={video?.format}
-        onProviderChange={onProviderChange}
-        className="w-full aspect-video bg-slate-900 text-white font-sans overflow-hidden rounded-md ring-media-focus data-[focus]:ring-4"
+        aspectRatio={video.format}
+        onProviderChange={(provider, event) => {
+          if (isYouTubeProvider(provider)) {
+            provider.preconnect();
+          }
+        }}
+        className="w-full aspect-video bg-slate-900 text-white font-sans overflow-hidden rounded-md"
       >
         <MediaProvider>
           <Poster className="absolute inset-0 block h-full w-full rounded-md opacity-0 transition-opacity data-[visible]:opacity-100 object-cover" />
         </MediaProvider>
-
         {paused && !overlayVisible && <PauseOverlay onPlay={handlePlay} video={video} />}
         {ended && !overlayVisible && <EndOverlay onPlay={handlePlay} video={video} />}
         {smartAutoPlay && overlayVisible && <SmartAutoplayOverlay video={video} onPlay={handlePlay} />}
         {video.continueWatching && showResumeMenu && (
           <ContinueWatching onRestart={handleRestart} onResume={handleResume} />
         )}
-
         {video.VideoForm && video.VideoForm.isActive && !overlayVisible && videoFormOpen && (
-          <VideoFormModal videoForm={video.VideoForm!} key={video.id} onClose={() => setVideoFormOpen(false)} onPlay={handlePlay}/>
+          <VideoFormModal
+            videoForm={video.VideoForm}
+            key={video.id}
+            onClose={() => setVideoFormOpen(false)}
+            onPlay={handlePlay}
+          />
         )}
-
         {video.fictitiousProgressHeight && !overlayVisible && (
           <ProgressBar
             progress={progress}
@@ -143,9 +113,7 @@ export function Player() {
             color={video.color || 'rgb(59 130 246)'}
           />
         )}
-
         {!overlayVisible && <VideoLayout video={video} overlayVisible={overlayVisible} />}
-
         {video.buttonsActive && (
           <VideoButtonCtaInside
             key={video.id}
@@ -154,9 +122,7 @@ export function Player() {
             overlayVisible={overlayVisible}
           />
         )}
-        
       </MediaPlayer>
-
       {video.watchingNow && <WatchingNow video={video} />}
       {video.buttonsActive && (
         <VideoButtonCtaBelow

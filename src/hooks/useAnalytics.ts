@@ -1,5 +1,5 @@
 import { useMutation } from "@apollo/client";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { getIPAddress, getGeolocation } from "../utils";
 import { ADD_VIEW_TIMESTAMP, ADD_VIEW_UNIQUE } from "../querys";
 
@@ -14,7 +14,7 @@ export const useAnalytics = ({ videoId }: UseAnalyticsProps) => {
   const [addViewUnique] = useMutation(ADD_VIEW_UNIQUE);
   const [addViewTimestamp] = useMutation(ADD_VIEW_TIMESTAMP);
 
-  // Função para buscar IP e Geolocalização
+  
   const fetchIPAndGeo = useCallback(async () => {
     if (!cachedIP || !cachedGeo) {
       try {
@@ -28,9 +28,7 @@ export const useAnalytics = ({ videoId }: UseAnalyticsProps) => {
     }
   }, [cachedIP, cachedGeo]);
 
-  // Função para registrar a visualização única
   const sendViewRequest = async () => {
-    // Espera o IP e a geolocalização estarem disponíveis
     await fetchIPAndGeo();
     if (cachedIP && cachedGeo) {
       try {
@@ -54,9 +52,7 @@ export const useAnalytics = ({ videoId }: UseAnalyticsProps) => {
     }
   };
 
-  // Função para registrar os timestamps de visualização
   const sendViewTimestampRequest = async (start: number, end: number) => {
-    // Espera o IP e a geolocalização estarem disponíveis
     await fetchIPAndGeo();
     if (cachedIP && cachedGeo) {
       try {
