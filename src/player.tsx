@@ -1,3 +1,6 @@
+import '@vidstack/react/player/styles/base.css';
+import '@vidstack/react/player/styles/plyr/theme.css';
+
 import type { Video } from './types';
 import {
   EndOverlay,
@@ -19,6 +22,11 @@ import {
   MediaProvider,
   isYouTubeProvider,
   type MediaPlayerInstance,
+  isHLSProvider,
+  type MediaProviderAdapter,
+  type MediaProviderChangeEvent,
+  type MediaCanPlayDetail,
+  type MediaCanPlayEvent,
 } from '@vidstack/react';
 import { useRef, useState, useEffect } from 'react';
 import { useAnalytics, useContextMenu, UsePlayer } from './hooks';
@@ -70,23 +78,36 @@ export function Player({ video }: PlayerProps) {
     }
   }, [playing, paused, ended]);
 
+  function onProviderChange(
+    provider: MediaProviderAdapter | null,
+    nativeEvent: MediaProviderChangeEvent,
+  ) {
+    // We can configure provider's here.
+    if (isHLSProvider(provider)) {
+      provider.config = {};
+    }
+    if (isYouTubeProvider(provider)) {
+      provider.cookies = true;
+      provider.preconnect()
+    }
+  }
+
+  function onCanPlay(detail: MediaCanPlayDetail, nativeEvent: MediaCanPlayEvent) {
+  }
+
   return (
     <div onContextMenu={onContextMenu} className="relative">
       <MediaPlayer
-        src={video.url}
-        playsInline
+        src={{
+          src: "https://www.youtube.com/watch?v=FeabRObt2V4",
+          type: "video/youtube"
+        }}
         ref={player}
-        load="visible"
         controls={false}
         onPause={onPause}
         crossOrigin="anonymous"
         aspectRatio={video.format}
-        onProviderChange={(provider, event) => {
-          if (isYouTubeProvider(provider)) {
-            provider.preconnect();
-          }
-        }}
-        className="w-full aspect-video bg-slate-900 text-white font-sans overflow-hidden rounded-md"
+        className="w-full aspect-video bg-slate-900 text-white font-sans overflow-hidden rounded-md ring-media-focus data-[focus]:ring-4"
       >
         <MediaProvider>
           <Poster className="absolute inset-0 block h-full w-full rounded-md opacity-0 transition-opacity data-[visible]:opacity-100 object-cover" />
@@ -138,3 +159,5 @@ export function Player({ video }: PlayerProps) {
     </div>
   );
 }
+
+

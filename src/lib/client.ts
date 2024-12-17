@@ -1,10 +1,10 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 
 const client = new ApolloClient({
-  uri: 'https://api-muve-player.vercel.app/graphql',
+  uri: 'http://localhost:4000/graphql',
   cache: new InMemoryCache(),
   link: new HttpLink({
-    uri: 'https://api-muve-player.vercel.app/graphql',
+    uri: 'http://localhost:4000/graphql',
   }),
 });
 

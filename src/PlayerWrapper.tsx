@@ -14,5 +14,7 @@ export function PlayerWrapper() {
   if (error) return <div>Error loading video</div>;
   if (!data?.video) return <div>Video not found</div>;
 
-  return <Player video={data.video} />;
+  return (
+    <Player video={data.video} />
+  );
 }
