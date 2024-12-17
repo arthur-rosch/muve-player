@@ -48,6 +48,7 @@ export function VideoLayout({ video, overlayVisible }: VideoLayoutProps) {
               <>
                 <Buttons.SeekBackward />
                 <Buttons.SeekForward />
+                <Menus.SpeedSubmenu />
               </>
             )}
             {video.chapterMenu && <Menus.Chapters chapters={video.Chapter} />}

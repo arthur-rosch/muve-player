@@ -30,6 +30,7 @@ import {
 } from '@vidstack/react';
 import { useRef, useState, useEffect } from 'react';
 import { useAnalytics, useContextMenu, UsePlayer } from './hooks';
+import { convertDurationToSeconds } from './utils';
 
 type PlayerProps = {
   video: Video;
@@ -62,21 +63,7 @@ export function Player({ video }: PlayerProps) {
     videoSmartAutoPlay: video.smartAutoPlay || false,
   });
 
-  const [videoFormOpen, setVideoFormOpen] = useState<boolean>(
-    (video.VideoForm && !overlayVisible && video.VideoForm.isActive) || false
-  );
-
-  useEffect(() => {
-    if (playing) {
-      setStartTime(currentTime || 0);
-      sendViewRequest();
-    }
-
-    if ((paused || ended) && startTime !== null) {
-      sendViewTimestampRequest(startTime, currentTime);
-      setStartTime(null);
-    }
-  }, [playing, paused, ended]);
+  const [videoFormOpen, setVideoFormOpen] = useState<boolean>(false);
 
   function onProviderChange(
     provider: MediaProviderAdapter | null,
@@ -94,6 +81,30 @@ export function Player({ video }: PlayerProps) {
 
   function onCanPlay(detail: MediaCanPlayDetail, nativeEvent: MediaCanPlayEvent) {
   }
+
+  useEffect(() => {
+    if (playing) {
+      setStartTime(currentTime || 0);
+      sendViewRequest();
+    }
+
+    if ((paused || ended) && startTime !== null) {
+      sendViewTimestampRequest(startTime, currentTime);
+      setStartTime(null);
+    }
+  }, [playing, paused, ended]);
+
+  useEffect(() => {
+    if (video?.VideoForm?.showIn) {
+      const showTimeInSeconds = convertDurationToSeconds(video.VideoForm.showIn);
+
+      if (currentTime >= showTimeInSeconds && !videoFormOpen) {
+        player.current?.pause();
+        setVideoFormOpen(true);
+      }
+    }
+  }, [currentTime, video?.VideoForm?.showIn, videoFormOpen, player]);
+
 
   return (
     <div onContextMenu={onContextMenu} className="relative">

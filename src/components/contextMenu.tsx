@@ -33,26 +33,22 @@ export const ContextMenu = ({ position, onClose }: ContextMenuProps) => {
         left: position.x,
       }}
     >
-      <ul className="py-2 px-1">
-        <li
-          onClick={() => {
-            console.log('Sobre o Muve clicked');
-            onClose();
-          }}
+      <ul className="py-2 px-1 flex flex-col">
+        <a
+          onClick={onClose}
+          href="https://muveplayer.com/" target="_blank" rel="noopener noreferrer"
           className={"px-4 py-2 text-sm text-white/90 hover:text-white cursor-pointer transition-colors duration-200 rounded-md select-none hover:bg-blue-600/20"}
         >
           Sobre o Muve
-        </li>
-        
-        <li
-          onClick={() => {
-            console.log('Reportar Erro clicked');
-            onClose();
-          }}
+        </a>
+
+        <a
+          onClick={onClose}
+          href="https://muveplayer.com/" target="_blank" rel="noopener noreferrer"
           className={"px-4 py-2 text-sm cursor-pointer transition-colors duration-200 rounded-md select-none text-red-400 hover:text-red-300 hover:bg-red-500/10"}
         >
           Reportar Erro
-        </li>
+        </a>
       </ul>
     </div>
   );
