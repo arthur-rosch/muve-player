@@ -99,7 +99,7 @@ export function Player({ video }: PlayerProps) {
     <div onContextMenu={onContextMenu} className="relative">
       <MediaPlayer
         src={{
-          src: "https://www.youtube.com/watch?v=FeabRObt2V4",
+          src: video.url,
           type: "video/youtube"
         }}
         ref={player}
